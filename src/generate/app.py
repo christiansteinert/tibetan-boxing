@@ -60,7 +60,7 @@ def generate_box(tibetan:str, above:str, below:str, has_border:bool):
             return f'\\tibAboveBelow{{{tibetan}}}{{{above}}}{{{below}}}'
     else:
         if not above and not below:
-            return tibetan 
+            return f' ({tibetan}) '
         else:
             return f'\\tibAboveBelowNoBorder{{{tibetan}}}{{{above}}}{{{below}}}'
 
