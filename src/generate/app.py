@@ -29,7 +29,7 @@ def load_config():
     except Exception as e:
         print(e)
 
-def sanitize_input(text):
+def sanitize_input(text:str):
     # remove special chars that are relevant for LaTex parsing
     text = text.replace('$','')
     text = text.replace('\\','')
@@ -46,14 +46,14 @@ def escape_tex(tex_code):
     return re.sub(r'([_{}\\])', r'\\\1', tex_code)
     
 
-def generate_box(tibetan:str, above:str, below:str, hasBorder:bool):
+def generate_box(tibetan:str, above:str, below:str, has_border:bool):
     # recursive processing to  allow for nested boxes
     tibetan = generate_boxes_for_chunk(tibetan)
     above = generate_boxes_for_chunk(above)
     below = generate_boxes_for_chunk(below)
 
     # generate boxes for the current chunk
-    if hasBorder:
+    if has_border:
         if not above and not below:
             return f'\\boxOnly{{{tibetan}}}'
         else:
@@ -107,8 +107,33 @@ def generate_boxes_for_chunk(text:str):
     result += escape_tex(text[pos:])
     return result
 
+def merge_multiline_tibetan(markdown_text:str):
+    """
+    If a block of Tibetan spans multiple lines, we merge them into a single one.
+    This allows to add line breaks in the code more easily so that the lines in the source 
+    text do not become too long
+    """
+    result = ''
+    inside_tib_block = False
+    
+    for line in markdown_text.split('\n'):
+        if line.startswith('> ') or line.startswith('>> '):
+            if inside_tib_block:
+                # we are continuing within a Tibetan block -> merge with the previous line
+                result += ' ' + line[2:].strip()
+            else:
+                result += '\n' + line
+
+            inside_tib_block = True
+        else:
+            inside_tib_block = False
+            result += '\n' + line
+    return result
+        
 def generate_boxes(markdown_text:str):
     lines = []
+
+    markdown_text = merge_multiline_tibetan(markdown_text)
     for line in markdown_text.split('\n'):
         if line.startswith('> ') or line.startswith('>> '):
             # blockquote line -> do boxing
@@ -128,7 +153,7 @@ def convert_markdown(markdown_text:str, format:str='latex'):
 
     Parameters:
     - markdown_text: The markdown code to be converted 
-    - format: target format - 'tex' or 'pdf'
+    - format: target format - 'latex' or 'pdf'
     """
     os.chdir('/tmp')
 
@@ -181,7 +206,7 @@ def convert_markdown(markdown_text:str, format:str='latex'):
         return pdf
 
 
-@app.route('/latex', methods=['POST', 'GET'])
+@app.route('/latex', methods=['POST'])
 def generate_latex():
     markdown = request.form["textInput"] 
     markdown = sanitize_input(markdown)
@@ -191,7 +216,7 @@ def generate_latex():
     return Response(latex, mimetype='text/plain', headers={'Content-Disposition': 'inline; filename="BoxedTibetan.tex'})
 
 
-@app.route('/pdf', methods=['POST', 'GET'])
+@app.route('/pdf', methods=['POST'])
 def generate_pdf():
     markdown = request.form["textInput"] 
     markdown = sanitize_input(markdown)

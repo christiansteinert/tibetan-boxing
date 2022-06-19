@@ -32,7 +32,7 @@
 </head>
 
 <body>
-  
+
   <form name="editForm" id="editForm" action="generate/pdf#pagemode=none&toolbar=0&navpanes=0&scrollbar=1&view=fitH&statusbar=0&messages=0" method="post" target="pdfOutput">
     <textarea name="textInput" id="textInput">
 # Tibetan grammar boxing tool
@@ -73,7 +73,13 @@ The following conventions are used while typing:
 
 * Even for nested boxes it is possible to add labels on all levels of nesting, such as this:
 
->> [afflictions that observe true sufferings:[observing true sufferings:[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]]
+>> [afflictions that observe true sufferings:
+>    [observing true sufferings:
+>      [true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]
+>    ](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]
+>  ]
+(In the above example the entered text is also typed in multiple lines that each start with a > character. While typing, the text for a Tibetan passage can split up into multiple lines at any point as long as each line of the passage continues to start with a > character.  Splitting things into multiple lines is completely optional and has no effect on the output, but it may help to keep track of longer annotations and nested brackets.)
+
 
 * English lines (i.e., lines that *don't* start with a > character) can be formatted with *markdown* formatting conventions. The formatting options are described at: https://pandoc.org/MANUAL.html#pandocs-markdown
 
@@ -81,14 +87,25 @@ The following conventions are used while typing:
 
 The following example is based on Craig Preston's book *How to Read Classical Tibetan, Vol. 2: Buddhist Tenets* and shows how Tibetan text can be annotated:
 
-> [[[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་][completely:adj:མ་ལུས་པ](:2nd:ར་)[abandon:verb:སྤངས་པ་](if  / when:s.p.:ན་)][[true sufferings:obj.:སྡུག་བདེན་][abandon:trans.v.:སྤངས་པ]](:2nd:ར་)[posit:འཇོགས་པ][because:post:འི་ཕྱིར་]
+> [
+>   [
+>     [true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]
+>   ](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]
+>   [completely:adj:མ་ལུས་པ](:2nd:ར་)[abandon:verb:སྤངས་པ་]
+>   (if  / when:s.p.:ན་)
+> ]
+> 
+> [
+>  [true sufferings:obj.:སྡུག་བདེན་][abandon:trans.v.:སྤངས་པ]
+> ](:2nd:ར་)
+> [posit:འཇོགས་པ][because:post:འི་ཕྱིར་]
 
 "This is so because when one has abandoned completely the afflictions that observe true sufferings, [that is] posited as having abandoned true sufferings."
 
 # Source code
 The source code is available at: https://github.com/christiansteinert/tibetan-boxing
 
-It is a relatively quick hack but it works :-).      
+It is a relatively quick hack but it works :-).
             </textarea>
   </form>
   <iframe src="blank.html" id="pdfOutput" name="pdfOutput"></iframe>
