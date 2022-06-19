@@ -45,6 +45,9 @@
 
 This little application allows to mark up the grammar structure of Tibetan sentences. You can type on the left side of the screen and the right side of the screen will show a generated PDF document that is based on your input. This PDF document can also be downloaded. If your browser does not show a download button in the document view on the right then try right-clicking onto the PDF view and then saving the document from there.
 
+To get started, just delete the the text on the left side of the screen, paste in some Tibetan text and then annotate it as you like.
+
+
 The following conventions are used while typing:
 
 * Lines that start with a > character are considered to contain Tibetan text where boxes can be defined.
@@ -55,7 +58,7 @@ The following conventions are used while typing:
 
 * It is also possible to create plain boxes or to only specify the text above or below, such as:
 
-> [དམིགས་པ], or [observe:དམིགས་པ་], or [:trans v.:དམིགས་པ་]
+> [དམིགས་པ་], or [observe:དམིགས་པ་], or [:trans v.:དམིགས་པ་]
 
 * It is also possible to label a portion of Tibetan text without drawing a box around it. This is done by using parentheses instead of square brackets with the following format (text below:text above:Tibetan text), for example:
 
@@ -69,7 +72,7 @@ The following conventions are used while typing:
 
 * Even for nested boxes it is possible to add labels on all levels of nesting, such as this:
 
-> [Afflictions that observe true sufferings:[observing true sufferings:[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]]
+> [afflictions that observe true sufferings:[observing true sufferings:[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]]
 
 * English lines (i.e., lines that *don't* start with a > character) can be formatted with *markdown* formatting conventions. The formatting options are described at: https://pandoc.org/MANUAL.html#pandocs-markdown
 
@@ -84,7 +87,7 @@ The following example is based on Craig Preston's book *How to Read Classical Ti
 # Source code 
 The source code is available at: https://github.com/christiansteinert/tibetan-boxing 
 
-It is a relatively quick hack but it works :-).
+It is a relatively quick hack but it works :-).      
             </textarea>
   </form>
   <iframe src="blank.html" id="pdfOutput" name="pdfOutput"></iframe>
@@ -109,8 +112,7 @@ It is a relatively quick hack but it works :-).
         if(Date.now() - lastTyped >= DEBOUNCE_TIME) {
           if($textInput.val() === '') {
             console.log('text is empty');
-            //$('#pdfOutput').attr('src','blank.html');
-            $('#pdfOutput').attr('src','http://www.africau.edu/images/default/sample.pdf');
+            $('#pdfOutput').attr('src','blank.html');
           } else {
             lastSubmittedText = $textInput.val()
             lastSubmitted = Date.now();
