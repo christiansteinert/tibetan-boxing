@@ -110,9 +110,11 @@ def generate_boxes_for_chunk(text:str):
 def generate_boxes(markdown_text:str):
     lines = []
     for line in markdown_text.split('\n'):
-        if line.startswith('> '):
+        if line.startswith('> ') or line.startswith('>> '):
             # blockquote line -> do boxing
-            lines.append( f'> \\tibetanfont{{{generate_boxes_for_chunk(line[2:])}}}' )
+            prefix = '> ' if line.startswith('>> ') else ''
+            line_content = generate_boxes_for_chunk(line[2:].strip())
+            lines.append( f'{prefix}\\tibetanfont{{{line_content}}}\englishfont' )
         else:
             # normal line -> no boxing
             lines.append( line )

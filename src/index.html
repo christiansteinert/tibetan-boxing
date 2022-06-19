@@ -32,8 +32,7 @@
 </head>
 
 <body>
-
-
+  
   <form name="editForm" id="editForm" action="generate/pdf#pagemode=none&toolbar=0&navpanes=0&scrollbar=1&view=fitH&statusbar=0&messages=0" method="post" target="pdfOutput">
     <textarea name="textInput" id="textInput">
 # Tibetan grammar boxing tool
@@ -45,29 +44,36 @@ To get started, just delete the text on the left side of the screen, paste in so
 
 The following conventions are used while typing:
 
-* Lines that start with a > character are considered to contain Tibetan text where boxes can be defined.
+* Lines that start with a > character are considered to contain Tibetan text where boxes can be defined, for example:
+
+> དམིགས་པ་
+
+* If a line starts with two >> characters instead of one then the Tibetan Text is also indented, for example:
+
+>> དམིགས་པ་
+
 * Boxes are defined by using square brackets. The format is: [text below:text above:Tibetan text], for example:
 
-> [observe:trans v.:དམིགས་པ་]
+>> [observe:trans v.:དམིགས་པ་]
 
 
 * It is also possible to create plain boxes or to only specify the text above or below, such as:
 
-> [དམིགས་པ་], or [observe:དམིགས་པ་], or [:trans v.:དམིགས་པ་]
+>> [དམིགས་པ་], or [observe:དམིགས་པ་], or [:trans v.:དམིགས་པ་]
 
 * It is also possible to label a portion of Tibetan text without drawing a box around it. This is done by using parentheses instead of square brackets with the following format (text below:text above:Tibetan text), for example:
 
-> (if / when:s.p.:ན་), or (if / when:ན་), or (:s.p.:ན་)
+>> (if / when:s.p.:ན་), or (if / when:ན་), or (:s.p.:ན་)
 
 
 * Boxes can be nested, for example:
 
-> [[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]
+>> [[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]
 
 
 * Even for nested boxes it is possible to add labels on all levels of nesting, such as this:
 
-> [afflictions that observe true sufferings:[observing true sufferings:[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]]
+>> [afflictions that observe true sufferings:[observing true sufferings:[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]]
 
 * English lines (i.e., lines that *don't* start with a > character) can be formatted with *markdown* formatting conventions. The formatting options are described at: https://pandoc.org/MANUAL.html#pandocs-markdown
 
@@ -75,12 +81,12 @@ The following conventions are used while typing:
 
 The following example is based on Craig Preston's book *How to Read Classical Tibetan, Vol. 2: Buddhist Tenets* and shows how Tibetan text can be annotated:
 
-> [[[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་][completely:adj:མ་ལུས་པ](:2nd:ར་)[abandon:verb:སྤངས་པ་](:s.p.:ན་)][[true sufferings:obj.:སྡུག་བདེན་][abandon:trans.v.:སྤངས་པ]](:2nd:ར་)[posit:འཇོགས་པ][because:post:འི་ཕྱིར་]
+> [[[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་][completely:adj:མ་ལུས་པ](:2nd:ར་)[abandon:verb:སྤངས་པ་](if  / when:s.p.:ན་)][[true sufferings:obj.:སྡུག་བདེན་][abandon:trans.v.:སྤངས་པ]](:2nd:ར་)[posit:འཇོགས་པ][because:post:འི་ཕྱིར་]
 
 "This is so because when one has abandoned completely the afflictions that observe true sufferings, [that is] posited as having abandoned true sufferings."
 
-# Source code 
-The source code is available at: https://github.com/christiansteinert/tibetan-boxing 
+# Source code
+The source code is available at: https://github.com/christiansteinert/tibetan-boxing
 
 It is a relatively quick hack but it works :-).      
             </textarea>
