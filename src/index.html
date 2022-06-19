@@ -1,0 +1,137 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Tibetan Boxing Tool</title>
+  <meta name="description" content="A tool to for putting boxes around Tibetan text in order to highlight the grammatical structure.">
+  <meta name="author" content="SitePoint">
+
+  <!-- 
+  <link rel="icon" href="/favicon.ico">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  -->
+
+  <!-- <link rel="stylesheet" href="css/styles.css?v=1.0">-->
+  <style>
+      #textInput{
+          border: 0;
+          border-right: 1px solid black;
+          float:left;
+          width:49vw;
+          height:99vh;
+          font-size:1.5em;
+      }
+      #pdfOutput{
+          border:0;
+          width:49vw;
+          height:99vh;
+          float:right;
+      }
+
+      html, body, form{padding:0; margin:0}
+  </style>
+</head>
+
+<body>
+
+
+  <form name="editForm" id="editForm" action="generate/pdf#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&scrollbar=0" method="post" target="pdfOutput">
+    <textarea name="textInput" id="textInput">
+# Tibetan grammar boxing tool
+
+This little application allows to mark up the grammar structure of Tibetan sentences. You can type on the left side of the screen and the right side of the screen will show a generated PDF document that is based on your input. This PDF document can also be downloaded. If your browser does not show a download button in the document view on the right then try right-clicking onto the PDF view and then saving the document from there.
+
+The following conventions are used while typing:
+
+* Lines that start with a > character are considered to contain Tibetan text where boxes can be defined.
+* Boxes are defined by using square brackets. The format is: [text below:text above:Tibetan text], for example:
+
+> [observe:trans v.:དམིགས་པ་]
+
+
+* It is also possible to create plain boxes or to only specify the text above or below, such as:
+
+> [དམིགས་པ], or [observe:དམིགས་པ་], or [:trans v.:དམིགས་པ་]
+
+* It is also possible to label a portion of Tibetan text without drawing a box around it. This is done by using parentheses instead of square brackets with the following format (text below:text above:Tibetan text), for example:
+
+> (if / when:s.p.:ན་), or (if / when:ན་), or (:s.p.:ན་)
+
+
+* Boxes can be nested, for example:
+
+> [[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]
+
+
+* Even for nested boxes it is possible to add labels on all levels of nesting, such as this:
+
+> [Afflictions that observe true sufferings:[observing true sufferings:[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་]]
+
+* English lines (i.e., lines that *don't* start with a > character) can be formatted with *markdown* formatting conventions. The formatting options are described at: https://pandoc.org/MANUAL.html#pandocs-markdown
+
+# Bigger example:
+
+The following example is based on Craig Preston's book *How to Read Classical Tibetan, Vol. 2: Buddhist Tenets* and shows how Tibetan text can be annotated:
+
+> [[[true sufferings:object:སྡུག་བདེན་](:2nd:ལ་)[observe:trans v.:དམིགས་པ]](:6th:འི་)[afflictions:noun:ཉོན་མོངས་][completely:adj:མ་ལུས་པ](:2nd:ར་)[abandon:verb:སྤངས་པ་](:s.p.:ན་)][[true sufferings:obj.:སྡུག་བདེན་][abandon:trans.v.:སྤངས་པ]](:2nd:ར་)[posit:འཇོགས་པ][because:post:འི་ཕྱིར་]
+
+"This is so because when one has abandoned completely the afflictions that observe true sufferings, [that is] posited as having abandoned true sufferings."
+
+# Source code 
+The source code is available at: https://github.com/christiansteinert/tibetan-boxing 
+
+It is a relatively quick hack but it works :-).
+            </textarea>
+  </form>
+  <iframe src="blank.html" id="pdfOutput" name="pdfOutput"></iframe>
+
+
+  <script src="js/jquery-3.6.0.min.js"></script>
+  <script>
+    $(function() {
+      var DEBOUNCE_TIME = 500;
+      var $editForm = $('#editForm');
+      var $textInput = $('#textInput');
+      var lastTyped = Date.now() - 1000;
+      var lastSubmitted = 0;
+      var lastSubmittedText = '';
+
+      var doSendForm = function() {        
+        if(lastSubmitted > lastTyped || lastSubmittedText == $textInput.val()) {
+          // nothing more to do.
+          return;
+        }
+
+        if(Date.now() - lastTyped >= DEBOUNCE_TIME) {
+          if($textInput.val() === '') {
+            console.log('text is empty');
+            //$('#pdfOutput').attr('src','blank.html');
+            $('#pdfOutput').attr('src','http://www.africau.edu/images/default/sample.pdf');
+          } else {
+            lastSubmittedText = $textInput.val()
+            lastSubmitted = Date.now();
+            $editForm.submit();
+          }
+        } else {
+          // wait for debounce time
+          window.setTimeout(function(){doSendForm()}, DEBOUNCE_TIME * 1.1);          
+        }
+      };
+
+      var sendForm = function() {
+        lastTyped = Date.now();
+        doSendForm();
+      }
+
+      $editForm.change(sendForm);
+      $editForm.on('keyup', sendForm);
+
+      doSendForm();
+    });
+  </script>
+</body>
+</html>
