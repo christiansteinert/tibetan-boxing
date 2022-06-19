@@ -114,7 +114,7 @@ def generate_boxes(markdown_text:str):
             # blockquote line -> do boxing
             prefix = '> ' if line.startswith('>> ') else ''
             line_content = generate_boxes_for_chunk(line[2:].strip())
-            lines.append( f'{prefix}\\tibetanfont{{{line_content}}}\englishfont' )
+            lines.append( f'{prefix}\\tibetanfont{{{line_content}}}\\englishfont' )
         else:
             # normal line -> no boxing
             lines.append( line )
