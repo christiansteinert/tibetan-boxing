@@ -112,6 +112,7 @@ It is a relatively quick hack but it works :-).
         if(Date.now() - lastTyped >= DEBOUNCE_TIME) {
           if($textInput.val() === '') {
             console.log('text is empty');
+            lastSubmittedText = ''
             $('#pdfOutput').attr('src','blank.html');
           } else {
             lastSubmittedText = $textInput.val()
