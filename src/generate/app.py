@@ -82,7 +82,7 @@ def generate_boxes_for_chunk(text:str):
         elif char == ')' or char == ']':
             if nesting == 1:
                 end_pos = idx
-                result += text[pos:start_pos] 
+                result += text[pos:start_pos].strip()
 
                 if len(colons) == 0:
                     colons.insert(0,start_pos)
@@ -90,9 +90,9 @@ def generate_boxes_for_chunk(text:str):
                 elif len(colons) == 1:
                     colons.insert(1,colons[0])
 
-                below = text[start_pos + 1:colons[0]]
-                above = text[colons[0]+1:colons[1]]
-                tibetan = text[colons[1]+1:end_pos]
+                below = text[start_pos + 1:colons[0]].strip()
+                above = text[colons[0]+1:colons[1]].strip()
+                tibetan = text[colons[1]+1:end_pos].strip()
 
                 result += generate_box(tibetan, above, below, char == ']')
 
@@ -104,7 +104,7 @@ def generate_boxes_for_chunk(text:str):
         elif char == ':' and nesting == 1:
             colons.append(idx)
 
-    result += escape_tex(text[pos:])
+    result += escape_tex(text[pos:].strip())
     return result
 
 def merge_multiline_tibetan(markdown_text:str):
