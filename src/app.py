@@ -195,8 +195,7 @@ def convert_markdown(markdown_text:str, format:str='latex'):
         
         return pdf
 
-
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['GET'], strict_slashes=False)
 def get_index():
     with open(f'{get_own_path()}/README.md', encoding="utf-8") as welcome_file:
         welcome = welcome_file.read()

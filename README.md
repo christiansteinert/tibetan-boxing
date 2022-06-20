@@ -12,3 +12,5 @@ Besides Python and Flask the application uses some external programs and fonts t
 ```
 dnf install pandoc texlive-xetex jomolhari-fonts liberation-fonts
 ```
+
+For deployment a webserver is needed that supports the Python WSGI (Web Server Gateway Interface). For example, Apache with mod_wsgi can be used. In that case Apache can be directed to execute the Flask application by mapping the web root of a website to the python script: `WSGIScriptAlias / /path/to/app.py`, for example `WSGIScriptAlias / /var/www/html/app.py`
