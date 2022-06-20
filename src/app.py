@@ -4,12 +4,10 @@ import subprocess
 import re
 import json
 import tempfile
-
 import io
 
-
 # 3rd party dependencies:
-from flask import Flask, request, Response
+from flask import Flask, request, Response, render_template
 
 app = Flask(__name__)
 config = {}
@@ -21,14 +19,6 @@ def init():
 def get_own_path():
     return os.path.dirname(__file__)
 
-def load_config():
-    try:
-        with open(f'{get_own_path()}/data/config.json', encoding="utf-8") as config_file:
-            config = json.load(config_file)            
-        return config
-    except Exception as e:
-        print(e)
-
 def sanitize_input(text:str):
     # remove special chars that are relevant for LaTex parsing
     text = text.replace('$','')
@@ -36,7 +26,7 @@ def sanitize_input(text:str):
     return text
 
 def get_template_path():
-    return get_own_path() + '/template.tex'
+    return get_own_path() + '/latex/template.tex'
 
 def exec(cmd):
     print(' '.join(cmd))
@@ -178,7 +168,7 @@ def convert_markdown(markdown_text:str, format:str='latex'):
     os.remove(md_file.name)
 
     if format == 'latex':
-        with open(tex_file_name,'r') as tex_file:
+        with open(tex_file_name,'r', encoding="utf-8") as tex_file:
             tex = tex_file.read()    
         os.remove(tex_file_name)    
         return tex
@@ -206,31 +196,47 @@ def convert_markdown(markdown_text:str, format:str='latex'):
         return pdf
 
 
-@app.route('/latex', methods=['POST'])
-def generate_latex():
+@app.route('/', methods=['GET'])
+def get_index():
+    with open(f'{get_own_path()}/README.md', encoding="utf-8") as welcome_file:
+        welcome = welcome_file.read()
+
+    return render_template('index.html', welcome=welcome)
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    file_extension = ''
     markdown = request.form["textInput"] 
+    format = request.form["format"] 
+    forceDownload = request.form["forceDownload"] == 'true'
+
+    if format == 'latex':
+        file_extension = 'tex'
+        format = 'latex'
+        mimetype = 'application/latex'
+    else:
+        file_extension = 'pdf'
+        format = 'pdf'
+        mimetype = 'application/pdf'
+
     markdown = sanitize_input(markdown)
     
-    latex = convert_markdown(markdown, format='latex')
+    latex = convert_markdown(markdown, format=format)
 
-    return Response(latex, mimetype='text/plain', headers={'Content-Disposition': 'inline; filename="BoxedTibetan.tex'})
+    if forceDownload:
+        headers = {'Content-Disposition': f'attachment; filename="BoxedTibetan.{file_extension}'}
+        mimetype = 'application/octet-stream'
+    else:
+        headers = {'Content-Disposition': f'inline; filename="BoxedTibetan.{file_extension}'}
 
-
-@app.route('/pdf', methods=['POST'])
-def generate_pdf():
-    markdown = request.form["textInput"] 
-    markdown = sanitize_input(markdown)
-    
-    pdf = convert_markdown(markdown, format='pdf')
-
-    return Response(pdf, mimetype='application/pdf', headers={'X-XContent-Disposition': 'inline; filename="BoxedTibetan.pdf'})
+    return Response(latex, mimetype=mimetype, headers=headers)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         # test mode: run directly via command line if the file name of a markdown file is passed
-        with open(sys.argv[1],'r') as md_file:
+        with open(sys.argv[1],'r', encoding="utf-8") as md_file:
             markdown = md_file.read()    
-            print(convert_markdown(markdown, 'pdf'))
+            print(convert_markdown(markdown, 'latex'))
     else:
         # regular mode: run as flask web application
         app.run()

@@ -1,0 +1,210 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link rel="stylesheet" href="static/css/styles.css">
+
+  <title>Tibetan Boxing Tool</title>
+  <meta name="description" content="A tool to for putting boxes around Tibetan text in order to highlight the grammatical structure.">
+  <meta name="author" content="SitePoint">
+
+  <link rel="icon" href="static/favicon.png" type="image/png" sizes="16x16">
+
+  <style>
+      #textInput{
+          border: 0;
+          border-right: 1px solid black;
+          float:left;
+          width:49vw;
+          height:99vh;
+          font-size:1.5em;
+      }
+      #pdfOutput{
+          border:0;
+          width:49vw;
+          height:99vh;
+          float:right;
+      }
+
+      html, body, form{padding:0; margin:0}
+  </style>
+</head>
+
+<body>
+  <!-- input form and output iframe -->
+  <form name="editForm" id="editForm" action="generate#pagemode=none&toolbar=0&navpanes=0&scrollbar=1&view=fitH&statusbar=0&messages=0" method="post" target="pdfOutput">
+    <textarea name="textInput" id="textInput">{{ welcome }}</textarea>
+    <input type="hidden" name="forceDownload" id="forceDownload" value="false" />
+    <input type="hidden" name="format" id="format" value="pdf" />
+  </form>
+  <iframe src="static/blank.html" id="pdfOutput" name="pdfOutput"></iframe>
+
+  <!-- Hamburger menu -->
+  <div class="menu-container">
+    <div class="menu-btn">
+      <span class="bar1"></span>
+      <span class="bar2"></span>
+      <span class="bar3"></span>
+    </div>
+    
+    <div class="menu">
+      <ul>
+        <li><a href="#" id="action-restore">Restore Previous Work</a></li>
+        <li><a href="#" id="action-downloadpdf">Download PDF</a></li>
+        <li><a href="#" id="action-downloadlatex">Download LaTeX</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="restore-overlay" class="overlay">
+    <div class="restore-menu-wrapper">
+      <p>The application will save your work every 
+      minute and will remember your last ten minutes of work. 
+      If something goes wrong then you can restore a previous version of what you typed.</p>
+      <p>Choose a point in time that you want to restore:</p>
+
+      <ul class="restore-menu"></ul>
+
+      <a href="#" class='action-button'>Cancel</a>
+    </div>
+  </div>
+
+
+  <!-- script code -->
+  <script src="static/js/jquery-3.6.0.min.js"></script>
+  <script>
+    $(function() {
+      var SAVE_FREQUENCY = 60000; // create a save snapshot every 60 seconds
+      var HISTORY_SIZE = 10; // save up to 10 states
+      var DEBOUNCE_TIME = 500; // time after whuch the PDF is generated after the user stopped typing
+      var $editForm = $('#editForm');
+      var $textInput = $('#textInput');
+
+      // save / reload editor content
+      // -------------------------------------------------------------
+      var editHistory = [];
+      if (window.localStorage) {
+        savedState = window.localStorage.getItem("editHistory") || '[]';
+        editHistory = JSON.parse(savedState);
+      }
+
+      var autoSave = function(content) {
+        if (content && window.localStorage) {
+          console.log('autosave');
+          var now = Date.now();
+          var newestItem = editHistory.length ? editHistory[editHistory.length - 1] : null;
+
+          if(newestItem && now - newestItem.created <= SAVE_FREQUENCY) {
+            // latest history entry was created less than 1 minute ago. Keep updating it until it becomes 1 minute old
+            newestItem.updated = now;
+            newestItem.content = content;
+          } else {
+            // create new history item
+            newestItem = {created: now, updated: now, content: content};
+            editHistory.push(newestItem);
+            if (editHistory.length > HISTORY_SIZE) {
+              editHistory = editHistory.splice(1);
+            }
+          }
+          window.localStorage.setItem("editHistory", JSON.stringify(editHistory));
+          $('#action-restore').show()
+        }
+      };
+
+      var restoreItem = function(index) {
+        $textInput.val( editHistory[index].content );
+        doSendForm({forceSubmit:true, disableAutosave:true});
+      };
+      
+      var showRestoreMenu = function() {
+        $restoreMenu = $('#restore-overlay .restore-menu');
+        $restoreMenu.empty();
+        for(var i=editHistory.length - 1; i >= 0; i--) {
+          var updated = new Date(editHistory[i].updated);
+          console.log(updated);
+          var item = $('<li data-item="'+i+'">'+updated.toLocaleDateString()+' '+updated.toLocaleTimeString()+'</li>')
+          item.click(function(){ restoreItem($(this).attr('data-item')) });
+          $restoreMenu.append(item);
+        }
+
+        $('#restore-overlay').show().click(function() {$('#restore-overlay').hide()});
+      };
+
+
+      // handling of markdown input (automatic PDF generation and triggering of autosave)
+      var lastTyped = Date.now() - 1000;
+      var lastSubmitted = 0;
+      var lastSubmittedText = '';
+
+      var doSendForm = function(options) {        
+        options = options || {};
+
+        if(!options.forceSubmit
+           && ( lastSubmitted > lastTyped || lastSubmittedText == $textInput.val())) {
+          // nothing more to do.
+          return;
+        }
+
+        if(options.forceSubmit || Date.now() - lastTyped >= DEBOUNCE_TIME) {
+          if($textInput.val() === '') {
+            console.log('text is empty');
+            lastSubmittedText = ''
+            $('#pdfOutput').attr('src','static/blank.html');
+          } else {
+            lastSubmittedText = $textInput.val()
+            lastSubmitted = Date.now();
+            
+            $('#format').val(options.format || 'pdf')
+            $('#forceDownload').val(options.forceDownload || false)
+            $editForm.attr('target', options.forceDownload ? '_blank':'pdfOutput')
+
+            $editForm.submit();
+
+            if(!options.disableAutosave) {
+              autoSave(lastSubmittedText);
+            }
+
+          }
+        } else {
+          // wait for debounce time
+          window.setTimeout(function(){doSendForm()}, DEBOUNCE_TIME * 1.1);          
+        }
+      };
+
+      var sendForm = function() {
+        lastTyped = Date.now();
+        doSendForm();
+      }
+
+      $editForm.change(sendForm);
+      $editForm.on('keyup', sendForm);
+
+      doSendForm({forceSubmit:true, disableAutosave:true});
+
+      // click handlers for hamburger menu
+      // -------------------------------------------------------------
+      $(".menu-btn").on("click", function(){
+        $(".menu-btn").toggleClass("close-btn");
+        $(".menu").toggleClass("open-menu");
+      }); 
+
+      $('#action-downloadpdf').click(function() { doSendForm({forceSubmit:true, format:'pdf', forceDownload: true}) });
+      $('#action-downloadlatex').click(function() { doSendForm({forceSubmit:true, format:'latex', forceDownload: true}) });
+      $('#action-restore').click(function(){ showRestoreMenu() });
+      $('.menu a').click(function(){ 
+        $('.menu').removeClass('open-menu'); $('.menu-btn').removeClass('close-btn'); 
+      });
+      
+      if(editHistory.length) {
+        $('#action-restore').show();
+      }
+
+    });
+
+       
+  </script>
+</body>
+</html>
