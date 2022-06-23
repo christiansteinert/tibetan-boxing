@@ -33,11 +33,18 @@ def exec(cmd):
     subprocess.run(cmd, shell=False, check=True)
 
 def escape_tex(tex_code):
-    return re.sub(r'([_{}\\])', r'\\\1', tex_code)
+    """
+    Escape special characters from the input so that they don't mess up our LaTeX file.
+    """
+    return re.sub(r'([_{}\\#])', r'\\\1', tex_code)
     
 
 def generate_box(tibetan:str, above:str, below:str, has_border:bool):
-    # recursive processing to  allow for nested boxes
+    """
+    Generate a box with Tibetan text and possible annotations
+    """
+
+    # recursive processing to allow for nested boxes
     tibetan = generate_boxes_for_chunk(tibetan)
     above = generate_boxes_for_chunk(above)
     below = generate_boxes_for_chunk(below)
@@ -50,6 +57,7 @@ def generate_box(tibetan:str, above:str, below:str, has_border:bool):
             return f'\\tibAboveBelow{{{tibetan}}}{{{above}}}{{{below}}}'
     else:
         if not above and not below:
+            # If there is only a brace without any annotation then we keep the brace around
             return f' ({tibetan}) '
         else:
             return f'\\tibAboveBelowNoBorder{{{tibetan}}}{{{above}}}{{{below}}}'
@@ -109,7 +117,8 @@ def merge_multiline_tibetan(markdown_text:str):
     for line in markdown_text.split('\n'):
         if line.startswith('> ') or line.startswith('>> '):
             if inside_tib_block:
-                # we are continuing within a Tibetan block -> merge with the previous line
+                # we are continuing on the next input line 
+                # within a Tibetan block -> merge with the previous line
                 result += ' ' + line[2:].strip()
             else:
                 result += '\n' + line
