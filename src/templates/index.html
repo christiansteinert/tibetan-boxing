@@ -18,13 +18,13 @@
           border: 0;
           border-right: 1px solid black;
           float:left;
-          width:49vw;
+          width:44vw;
           height:99vh;
           font-size:1.5em;
       }
       #pdfOutput{
           border:0;
-          width:49vw;
+          width:54vw;
           height:99vh;
           float:right;
       }
@@ -35,10 +35,11 @@
 
 <body>
   <!-- input form and output iframe -->
-  <form name="editForm" id="editForm" action="generate#pagemode=none&toolbar=0&navpanes=0&scrollbar=1&view=fitH&statusbar=0&messages=0" method="post" target="pdfOutput">
+  <form name="editForm" id="editForm" action="generate#pagemode=none&toolbar=0&navpanes=0&scrollbar=1&view=fitH&statusbar=0&messages=0&nameddest=viewPosition" method="post" target="pdfOutput">
     <textarea name="textInput" id="textInput">{{ welcome }}</textarea>
     <input type="hidden" name="forceDownload" id="forceDownload" value="false" />
     <input type="hidden" name="format" id="format" value="pdf" />
+    <input type="hidden" name="cursorLine" id="cursorLine" value="" />
   </form>
   <iframe src="static/blank.html" id="pdfOutput" name="pdfOutput"></iframe>
 
@@ -139,6 +140,38 @@
       var lastSubmitted = 0;
       var lastSubmittedText = '';
 
+      function getCursorLine() {
+          var line = 0;
+          var cursorPos = $textInput[0].selectionStart;
+          var inputText = $textInput.val();
+          
+          for(var i=0;i<Math.min(cursorPos, inputText.length); i++) {
+              if(inputText[i] == '\n') {
+                  line++;
+              }
+          }
+          return line;
+      }
+
+      var getTopmostInputLine = function() {
+        var scrollPosPx = $textInput.scrollTop();
+        if(scrollPosPx == 0) {
+          return 0;
+        } else {
+          // determine which line roughly is the topmost line of the input window
+          // and calculate how that maps to the position in the overall file
+          var totalTextHeightPx = scrollPos + $textInput.height();
+          var textLines = $textInput.val().split('\n').length
+          return Math.floor( textLines * scrollPosPx / totalTextHeightPx );
+        }
+      }
+
+      var insertAnchor = function(text, anchorName, lineNr) {
+        var textLines = $textInput.val().split('\n').length
+        textLines = arr.splice(lineNr, 0, '##'+anchorName);
+        return "\n".join(textLines);
+      }
+
       var doSendForm = function(options) {        
         options = options || {};
 
@@ -151,14 +184,15 @@
         if(options.forceSubmit || Date.now() - lastTyped >= DEBOUNCE_TIME) {
           if($textInput.val() === '') {
             console.log('text is empty');
-            lastSubmittedText = ''
+            lastSubmittedText = '';
             $('#pdfOutput').attr('src','static/blank.html');
           } else {
-            lastSubmittedText = $textInput.val()
+            lastSubmittedText = $textInput.val();
             lastSubmitted = Date.now();
             
-            $('#format').val(options.format || 'pdf')
-            $('#forceDownload').val(options.forceDownload || false)
+            $('#format').val(options.format || 'pdf');
+            $('#forceDownload').val(options.forceDownload || false);
+            $('#cursorLine').val(getCursorLine() || 0);
             $editForm.attr('target', options.forceDownload ? '_blank':'pdfOutput')
 
             $editForm.submit();

@@ -105,6 +105,15 @@ def generate_boxes_for_chunk(text:str):
     result += escape_tex(text[pos:].strip())
     return result
 
+def handle_custom_commands(markdown_text:str):
+    """
+    Handle custom markdown commands, currently only ##anchorname to generate 
+    a LaTeX nav target (anchor)
+    """
+    # replace ##anchorname with \hypertarget{anchorname}{}
+    markdown_text = re.sub('##([A-Za-z]*)',r'\\hypertarget{\1}{\\label{\1}}',markdown_text)
+    return markdown_text
+
 def merge_multiline_tibetan(markdown_text:str):
     """
     If a block of Tibetan spans multiple lines, we merge them into a single one.
@@ -113,8 +122,9 @@ def merge_multiline_tibetan(markdown_text:str):
     """
     result = ''
     inside_tib_block = False
-    
+
     for line in markdown_text.split('\n'):
+        line = handle_custom_commands(line)
         if line.startswith('> ') or line.startswith('>> '):
             if inside_tib_block:
                 # we are continuing on the next input line 
@@ -127,6 +137,7 @@ def merge_multiline_tibetan(markdown_text:str):
         else:
             inside_tib_block = False
             result += '\n' + line
+    
     return result
         
 def generate_boxes(markdown_text:str):
@@ -145,8 +156,27 @@ def generate_boxes(markdown_text:str):
         
     return '\n'.join(lines)
 
+def insert_navigation_anchor(markdown_text, cursor_line):
+    """
+    insert an invisible navigation anchor somewhat above the cursor position so that the scroll position 
+    of the  PDF output is roughly the same as the position that is being edited.
+    """
+    
+    # scroll the PDF output to 17 input lines above the current cursor position
+    view_position = max(0, cursor_line - 17)
+    lines = markdown_text.split('\n')
+    
+    # if the desired position where we want to insert the anchor is in the middle of a Tibetan block 
+    # then go up further
+    while view_position > 0 and lines[view_position].startswith('>'):
+        view_position -= 1
 
-def convert_markdown(markdown_text:str, format:str='latex'):
+    # insert a navigation anchor
+    lines.insert(view_position, '##viewPosition')
+
+    return '\n'.join(lines)
+
+def convert_markdown(markdown_text:str, format:str='latex', cursor_line:int=0):
     """
     Converts markdown to text
 
@@ -156,6 +186,7 @@ def convert_markdown(markdown_text:str, format:str='latex'):
     """
     os.chdir('/tmp')
 
+    markdown_text = insert_navigation_anchor(markdown_text, cursor_line)
     markdown_text = generate_boxes(markdown_text)
 
     md_file = tempfile.NamedTemporaryFile(prefix='boxing_', suffix='.md', delete=False) 
@@ -215,7 +246,8 @@ def get_index():
 def generate():
     file_extension = ''
     markdown = request.form["textInput"] 
-    format = request.form["format"] 
+    format = request.form["format"]
+    cursor_line = int(request.form["cursorLine"]) if "cursorLine" in request.form else 0
     forceDownload = request.form["forceDownload"] == 'true'
 
     if format == 'latex':
@@ -229,7 +261,7 @@ def generate():
 
     markdown = sanitize_input(markdown)
     
-    latex = convert_markdown(markdown, format=format)
+    latex = convert_markdown(markdown, format=format, cursor_line=cursor_line)
 
     if forceDownload:
         headers = {'Content-Disposition': f'attachment; filename="BoxedTibetan.{file_extension}'}

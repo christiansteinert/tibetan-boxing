@@ -415,6 +415,9 @@ $endif$
 % custom code for Tibetan 
 \usepackage[a4paper, margin=1.5cm]{geometry}
 
+% allow hypertext anchors to work properly in XeLaTeX. See https://sourceforge.net/p/xetex/bugs/132/
+\special{dvipdfmx:config C 0x0010}
+
 \usepackage{xcolor,calc}
 \usepackage{stackrel}
 \usepackage{placeins}
