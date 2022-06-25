@@ -39,22 +39,30 @@ def escape_tex(tex_code):
     return re.sub(r'([_{}\\#])', r'\\\1', tex_code)
     
 
-def generate_box(tibetan:str, above:str, below:str, has_border:bool):
+def generate_box(tibetan:str, above:str, below:str, has_border:bool, is_root_level:bool=True):
     """
     Generate a box with Tibetan text and possible annotations
     """
+    contains_other_boxes = re.search(r'[[(]',tibetan + above + below )
 
     # recursive processing to allow for nested boxes
-    tibetan = generate_boxes_for_chunk(tibetan)
-    above = generate_boxes_for_chunk(above)
-    below = generate_boxes_for_chunk(below)
+    tibetan = generate_boxes_for_chunk(tibetan, False)
+    above = generate_boxes_for_chunk(above, False)
+    below = generate_boxes_for_chunk(below, False)
+
+    space = ' \linebreak[1] ' if is_root_level else ''
 
     # generate boxes for the current chunk
     if has_border:
         if not above and not below:
-            return f'\\boxOnly{{{tibetan}}}'
-        else:
-            return f'\\tibAboveBelow{{{tibetan}}}{{{above}}}{{{below}}}'
+            return f'\\boxOnly{{{tibetan}}}{space}'
+        if above and below or ( not contains_other_boxes ):
+            # boxes with text above and below or innermost nesting level
+            return  f'\\tibAboveBelow{{{tibetan}}}{{{above}}}{{{below}}}{space}'
+        if above and not below:
+            return f'\\tibAbove{{{tibetan}}}{{{above}}}{space}'
+        if below and not above:
+            return f'\\tibBelow{{{tibetan}}}{{{below}}}{space}'
     else:
         if not above and not below:
             # If there is only a brace without any annotation then we keep the brace around
@@ -62,7 +70,7 @@ def generate_box(tibetan:str, above:str, below:str, has_border:bool):
         else:
             return f'\\tibAboveBelowNoBorder{{{tibetan}}}{{{above}}}{{{below}}}'
 
-def generate_boxes_for_chunk(text:str):
+def generate_boxes_for_chunk(text:str, is_root_level:bool):
     if not text:
         return ''
 
@@ -92,7 +100,7 @@ def generate_boxes_for_chunk(text:str):
                 above = text[colons[0]+1:colons[1]].strip()
                 tibetan = text[colons[1]+1:end_pos].strip()
 
-                result += generate_box(tibetan, above, below, char == ']')
+                result += generate_box(tibetan, above, below, char == ']', is_root_level=is_root_level)
 
                 pos = idx + 1
 
@@ -148,7 +156,7 @@ def generate_boxes(markdown_text:str):
         if line.startswith('> ') or line.startswith('>> '):
             # blockquote line -> do boxing
             prefix = '> ' if line.startswith('>> ') else ''
-            line_content = generate_boxes_for_chunk(line[2:].strip())
+            line_content = generate_boxes_for_chunk(line[2:].strip(), is_root_level=True)
             lines.append( f'{prefix}\\tibetanfont{{{line_content}}}\\englishfont' )
         else:
             # normal line -> no boxing
@@ -162,8 +170,8 @@ def insert_navigation_anchor(markdown_text, cursor_line):
     of the  PDF output is roughly the same as the position that is being edited.
     """
     
-    # scroll the PDF output to 17 input lines above the current cursor position
-    view_position = max(0, cursor_line - 17)
+    # scroll the PDF output to some lines above the current cursor position
+    view_position = max(0, cursor_line - 12)
     lines = markdown_text.split('\n')
     
     # if the desired position where we want to insert the anchor is in the middle of a Tibetan block 

@@ -433,16 +433,16 @@ $endif$
 \newcommand\spacer{\rule{20pt}{0pt}}
 
 \newcommand\boxOnly[1]{%
-	\begin{tabular}[c]{|c|} 
- 		\hline \\ \texttibetan{#1} \\ \\ \hline
+	\begin{tabular}[c]{|@{\hspace{0.1cm}}c@{\hspace{0.05cm}}|} 
+		\hline \\[-2.2ex] \texttibetan{#1} \\[-2.4ex] \\ \hline
 	\end{tabular}
 }
 
 \newcommand\tibAboveBelow[3]{%
 	\begin{tabular}{c}
-		\begin{tabular}[c]{|c| c |c|} 
+		\begin{tabular}[c]{|@{\hspace{0.1cm}}c@{\hspace{0.1cm}}|} 
 			\hline \textcolor{blue}{\englishfontsmall{#2}} \\[0.2\normalbaselineskip] 
-			\texttibetan{#1} \\
+			\texttibetan{#1} \\[-0.9ex]
 			\textcolor{black}{\englishfontsmall{#3}} \\
 			\hline
 		\end{tabular}
@@ -451,14 +451,35 @@ $endif$
 
 \newcommand\tibAboveBelowNoBorder[3]{%
 	\begin{tabular}{c}
-		\begin{tabular}[c]{c c c} 
+		\begin{tabular}[c]{@{\hspace{0.1cm}}c@{\hspace{0.1cm}}} 
 			\textcolor{blue}{\englishfontsmall{#2}} \\[0.2\normalbaselineskip] 
-			\texttibetan{#1} \\
+			\texttibetan{#1} \\[-0.9ex]
 			\textcolor{black}{\englishfontsmall{#3}} \\
 		\end{tabular}
 	\end{tabular}
 }
 
+
+\newcommand\tibAbove[2]{%
+	\begin{tabular}{c}
+		\begin{tabular}[c]{|@{\hspace{-0.05cm}}c@{\hspace{-0.05cm}}|} 
+			\hline \textcolor{blue}{\englishfontsmall{#2}} \\[0.2\normalbaselineskip] 
+			\texttibetan{#1} \\[0.8cm]
+			\hline 
+		\end{tabular}
+	\end{tabular}
+}
+
+\newcommand\tibBelow[2]{%
+	\begin{tabular}{c}
+		\begin{tabular}[c]{|@{\hspace{0.1cm}}c@{\hspace{0.1cm}}|} 
+			\hline \\[-2.2ex]
+			\texttibetan{#1} \\[-0.9ex]
+			\textcolor{black}{\englishfontsmall{#2}} \\
+			\hline
+		\end{tabular}
+	\end{tabular}
+}
 
 \renewcommand{\arraystretch}{0.7} 
 
@@ -472,6 +493,8 @@ $endif$
 
 
 \begin{document}
+	\sloppy
+
 	$if(has-frontmatter)$
 	\frontmatter
 	$endif$
